@@ -36,35 +36,27 @@ class ConditionalVAE(nn.Module):
 
 @st.cache_resource
 def load_model():
-    try:
-        checkpoint = torch.load('conditional_vae_mnist.pth', map_location='cpu')
-        model = ConditionalVAE()
-        model.load_state_dict(checkpoint['model_state_dict'])
-        model.eval()
-        return model
-    except Exception as e:
-        st.error(f"Error loading model: {e}")
-        return None
+    checkpoint = torch.load('conditional_vae_mnist.pth', map_location='cpu')
+    model = ConditionalVAE(latent_dim=20, num_classes=10)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.eval()
+    return model
 
-st.title("🔢 Handwritten Digit Generator")
+st.title("Handwritten Digit Generator")
 
 model = load_model()
+digit = st.selectbox("Choose digit (0-9):", range(10))
 
-if model is not None:
-    digit = st.selectbox("Choose digit (0-9):", range(10))
+if st.button("Generate Images"):
+    with torch.no_grad():
+        labels = torch.full((5,), digit, dtype=torch.long)
+        z = torch.randn(5, 20)
+        generated = model.decode(z, labels)
+        generated = generated.view(5, 28, 28)
+        generated = (generated + 1) / 2
     
-    if st.button("Generate 5 Images"):
-        with torch.no_grad():
-            labels = torch.full((5,), digit, dtype=torch.long)
-            z = torch.randn(5, 20)
-            generated = model.decode(z, labels)
-            generated = generated.view(5, 28, 28)
-            generated = (generated + 1) / 2
-        
-        cols = st.columns(5)
-        for i in range(5):
-            with cols[i]:
-                img = (generated[i].numpy() * 255).astype(np.uint8)
-                st.image(img, caption=f"Sample {i+1}")
-else:
-    st.error("Failed to load model")
+    cols = st.columns(5)
+    for i in range(5):
+        with cols[i]:
+            img = (generated[i].numpy() * 255).astype(np.uint8)
+            st.image(img)
