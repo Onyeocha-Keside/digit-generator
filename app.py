@@ -7,9 +7,23 @@ from PIL import Image
 
 class ConditionalVAE(nn.Module):
     def __init__(self, latent_dim=20, num_classes=10):
-        super().__init__()
+        super(ConditionalVAE, self).__init__()
         self.latent_dim = latent_dim
         self.num_classes = num_classes
+        
+        # Encoder (ADD THIS BACK)
+        self.encoder = nn.Sequential(
+            nn.Linear(784 + num_classes, 512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+        )
+        
+        # Latent space (ADD THIS BACK)
+        self.fc_mu = nn.Linear(256, latent_dim)
+        self.fc_logvar = nn.Linear(256, latent_dim)
+        
+        # Decoder (keep this)
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim + num_classes, 256),
             nn.ReLU(),
