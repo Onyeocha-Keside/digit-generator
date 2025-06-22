@@ -10,6 +10,7 @@ class ConditionalVAE(nn.Module):
         self.latent_dim = latent_dim
         self.num_classes = num_classes
         
+        # Encoder (MUST match training exactly)
         self.encoder = nn.Sequential(
             nn.Linear(784 + num_classes, 512),
             nn.ReLU(),
@@ -17,9 +18,11 @@ class ConditionalVAE(nn.Module):
             nn.ReLU(),
         )
         
+        # Latent space (MUST match training exactly)
         self.fc_mu = nn.Linear(256, latent_dim)
         self.fc_logvar = nn.Linear(256, latent_dim)
         
+        # Decoder (MUST match training exactly)
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim + num_classes, 256),
             nn.ReLU(),
@@ -44,19 +47,26 @@ def load_model():
 
 st.title("Handwritten Digit Generator")
 
-model = load_model()
-digit = st.selectbox("Choose digit (0-9):", range(10))
-
-if st.button("Generate Images"):
-    with torch.no_grad():
-        labels = torch.full((5,), digit, dtype=torch.long)
-        z = torch.randn(5, 20)
-        generated = model.decode(z, labels)
-        generated = generated.view(5, 28, 28)
-        generated = (generated + 1) / 2
+try:
+    model = load_model()
+    st.success("Model loaded successfully!")
     
-    cols = st.columns(5)
-    for i in range(5):
-        with cols[i]:
-            img = (generated[i].numpy() * 255).astype(np.uint8)
-            st.image(img)
+    digit = st.selectbox("Choose digit (0-9):", range(10))
+    
+    if st.button("Generate Images"):
+        with torch.no_grad():
+            labels = torch.full((5,), digit, dtype=torch.long)
+            z = torch.randn(5, 20)
+            generated = model.decode(z, labels)
+            generated = generated.view(5, 28, 28)
+            generated = (generated + 1) / 2
+        
+        cols = st.columns(5)
+        for i in range(5):
+            with cols[i]:
+                img = (generated[i].numpy() * 255).astype(np.uint8)
+                st.image(img)
+
+except Exception as e:
+    st.error(f"Error: {e}")
+    st.write("Model loading failed. Check if the model file matches the architecture.")
