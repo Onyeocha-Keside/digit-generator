@@ -1,4 +1,7 @@
-streamlit
-matplotlib
-numpy
-pillow
+torch==2.0.1
+torchvision==0.15.2
+streamlit==1.28.1
+matplotlib==3.7.2
+numpy==1.24.3
+pillow==10.0.0
+scipy==1.11.1
