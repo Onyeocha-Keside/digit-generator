@@ -176,12 +176,13 @@ def generate_vae_style_digit(digit, sample=1):
     noise = np.random.normal(0, 0.1, (28, 28))
     img = np.clip(img + noise, 0, 1)
     
-    # Apply slight gaussian blur effect
-    from scipy import ndimage
-    try:
-        img = ndimage.gaussian_filter(img, sigma=0.8)
-    except:
-        pass  # If scipy not available, continue without blur
+    # Apply simple smoothing instead of gaussian blur
+    # Simple 3x3 averaging filter for smoothing
+    smoothed = np.copy(img)
+    for y in range(1, 27):
+        for x in range(1, 27):
+            smoothed[y, x] = np.mean(img[y-1:y+2, x-1:x+2])
+    img = smoothed
     
     return img
 
